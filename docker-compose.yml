@@ -1,5 +1,3 @@
-version: "3.9"
-
 # RBI Web Isolation — 전체 스택
 # 사용법:
 #   cp .env.example .env   # 환경변수 수정

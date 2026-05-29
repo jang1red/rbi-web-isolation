@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: rbcloud
-          image: rbi-rbcloud-browser:latest
+          image: m1k1o/neko:chromium
           imagePullPolicy: IfNotPresent
           env:
             - name: NEKO_PASSWORD

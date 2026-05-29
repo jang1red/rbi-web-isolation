@@ -61,7 +61,8 @@ const rbcloudProxy = createProxyMiddleware({
 app.use('/rbcloud', gateRBCloud, rbcloudProxy);
 
 // ── 프론트엔드 정적 서빙 ───────────────────────────────────
-const frontendDir = path.resolve(__dirname, '../../frontend/dist');
+// __dirname = /app/src  →  ../frontend/dist = /app/frontend/dist
+const frontendDir = path.resolve(__dirname, '../frontend/dist');
 if (fs.existsSync(frontendDir)) {
   app.use(express.static(frontendDir));
   app.get('*', (req, res, next) => {
