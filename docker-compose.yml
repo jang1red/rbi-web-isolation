@@ -1,0 +1,79 @@
+version: "3.9"
+
+# RBI Web Isolation — 전체 스택
+# 사용법:
+#   cp .env.example .env   # 환경변수 수정
+#   docker compose up --build
+#
+# 접속: http://localhost:8080  (게이트웨이 → 인증 → 격리 워크스페이스)
+
+services:
+
+  # ── 1. 격리 브라우저 (Neko + Chromium) ─────────────────────
+  neko:
+    build: ./neko-browser
+    restart: unless-stopped
+    shm_size: "2gb"          # Chromium 렌더링 공유메모리
+    environment:
+      # Neko 접속 비밀번호 (게이트웨이 인증 뒤에 가려지므로 내부용)
+      NEKO_PASSWORD: ${NEKO_PASSWORD:-userpass}
+      NEKO_ADMIN_PASSWORD: ${NEKO_ADMIN_PASSWORD:-adminpass}
+      # WebRTC 설정 (외부 노출 IP 필수 — NAT 환경)
+      NEKO_WEBRTC_NAT1TO1: ${NEKO_WEBRTC_NAT1TO1:-127.0.0.1}
+      NEKO_WEBRTC_UDPMUX: ${NEKO_WEBRTC_UDPMUX:-52000}
+      NEKO_WEBRTC_TCPMUX: 0
+      # 시작 페이지
+      NEKO_CHROMIUM_FLAGS: >-
+        --remote-debugging-port=9222
+        --remote-debugging-address=0.0.0.0
+        --no-first-run
+        --disable-default-apps
+        --disable-session-crashed-bubble
+    volumes:
+      # 게이트웨이가 생성한 Managed Policy JSON 을 Chromium 에 마운트
+      - policy_data:/etc/chromium/policies/managed:ro
+    ports:
+      # WebRTC UDP (방화벽에서 외부 오픈 필요)
+      - "${NEKO_WEBRTC_UDPMUX:-52000}:52000/udp"
+    # 외부에 직접 노출하지 않음 — 게이트웨이 프록시를 통해서만 접근
+    expose:
+      - "8080"   # Neko HTTP (게이트웨이 프록시)
+      - "9222"   # CDP (게이트웨이 내부 연결)
+    networks:
+      - rbi-net
+    cap_add:
+      - SYS_ADMIN   # Chromium sandbox
+
+  # ── 2. 게이트웨이 (Node.js: 인증·정책·감사·프록시) ──────────
+  gateway:
+    build: ./gateway
+    restart: unless-stopped
+    depends_on:
+      - neko
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      NEKO_URL: http://neko:8080
+      CDP_HOST: neko
+      CDP_PORT: 9222
+      DATA_DIR: /app/data
+      DB_PATH: /app/data/rbi.db
+      POLICY_DIR: /app/data/policies
+    volumes:
+      - gateway_data:/app/data
+      # 정책 파일을 neko 컨테이너와 공유 (게이트웨이 쓰기 → neko 읽기)
+      - policy_data:/app/data/policies
+      # 프론트엔드 빌드 결과 서빙
+      - ./frontend/dist:/app/frontend/dist:ro
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    networks:
+      - rbi-net
+
+volumes:
+  gateway_data:
+  policy_data:
+
+networks:
+  rbi-net:
+    driver: bridge

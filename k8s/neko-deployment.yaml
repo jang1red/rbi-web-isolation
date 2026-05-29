@@ -1,0 +1,89 @@
+---
+# Neko 격리 브라우저 Deployment
+# 소개서의 "K8S 기반 쉬운 이식" — 세션별 Pod 확장 시 HPA 또는 세션 오케스트레이터 연동 필요
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neko
+  namespace: rbi
+  labels:
+    app: neko
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neko
+  template:
+    metadata:
+      labels:
+        app: neko
+    spec:
+      containers:
+        - name: neko
+          image: ghcr.io/m1k1o/neko:chromium
+          env:
+            - name: NEKO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rbi-secret
+                  key: neko-password
+            - name: NEKO_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rbi-secret
+                  key: neko-admin-password
+            - name: NEKO_WEBRTC_NAT1TO1
+              valueFrom:
+                configMapKeyRef:
+                  name: rbi-config
+                  key: NEKO_WEBRTC_NAT1TO1
+            - name: NEKO_WEBRTC_UDPMUX
+              value: "52000"
+            - name: NEKO_CHROMIUM_FLAGS
+              value: >-
+                --remote-debugging-port=9222
+                --remote-debugging-address=0.0.0.0
+                --no-first-run
+                --disable-default-apps
+          resources:
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 9222
+              name: cdp
+            - containerPort: 52000
+              protocol: UDP
+              name: webrtc-udp
+          volumeMounts:
+            - name: policy
+              mountPath: /etc/chromium/policies/managed
+              readOnly: true
+          securityContext:
+            capabilities:
+              add: ["SYS_ADMIN"]
+      volumes:
+        - name: policy
+          persistentVolumeClaim:
+            claimName: rbi-policy-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neko
+  namespace: rbi
+spec:
+  selector:
+    app: neko
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: cdp
+      port: 9222
+      targetPort: 9222

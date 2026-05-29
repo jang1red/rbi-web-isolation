@@ -1,0 +1,98 @@
+:root {
+  --bg: #0e1320;
+  --panel: #161d2e;
+  --panel-2: #1e2740;
+  --line: #2a3550;
+  --text: #e7ecf5;
+  --muted: #8a97b3;
+  --accent: #2f6df6;
+  --accent-2: #00b894;
+  --danger: #e74c6f;
+  --warn: #e6a23c;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: 'Segoe UI', 'Malgun Gothic', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+}
+button {
+  font: inherit; cursor: pointer; border: 1px solid var(--line);
+  background: var(--accent); color: #fff; border-radius: 7px; padding: 7px 14px;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--text); }
+button.danger { background: var(--danger); }
+button.danger.ghost { background: transparent; color: var(--danger); border-color: var(--danger); }
+input, select {
+  font: inherit; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px;
+}
+input:focus, select:focus { outline: 2px solid var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.center { display: grid; place-items: center; height: 100%; }
+.error { color: var(--danger); font-size: 13px; }
+
+/* ── 로그인 ───────────────────────────── */
+.login-wrap { display: grid; place-items: center; height: 100%;
+  background: radial-gradient(900px 500px at 50% -10%, #15203a, var(--bg)); }
+.login-card { width: 340px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+.brand { font-size: 22px; font-weight: 800; }
+
+/* ── 워크스페이스 ─────────────────────── */
+.workspace { display: flex; flex-direction: column; height: 100%; }
+.screen { position: relative; flex: 1; background: #000; overflow: hidden; }
+.neko-frame { width: 100%; height: 100%; border: 0; display: block; }
+.watermark {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  display: flex; flex-wrap: wrap; align-content: flex-start; user-select: none;
+  mix-blend-mode: difference;
+}
+
+/* ── 인포바 ───────────────────────────── */
+.infobar { display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: var(--panel); border-bottom: 1px solid var(--line); }
+.infobar-nav { display: flex; gap: 4px; }
+.infobar-nav button { background: var(--panel-2); color: var(--text); padding: 6px 10px; }
+.infobar-url { flex: 1; display: flex; align-items: center; gap: 6px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 20px; padding: 2px 4px 2px 12px; }
+.infobar-url .lock { font-size: 13px; }
+.infobar-url input { flex: 1; border: 0; background: transparent; padding: 8px; }
+.infobar-url input:focus { outline: none; }
+.infobar-url button { border-radius: 16px; }
+.infobar-status { min-width: 180px; font-size: 12px; text-align: right; }
+.infobar-status.blocked, .infobar-status.error { color: var(--danger); }
+.infobar-status.ok { color: var(--accent-2); }
+.infobar-status.warn { color: var(--warn); }
+.infobar-right { display: flex; align-items: center; gap: 8px; }
+.infobar-right .who { font-size: 13px; color: var(--muted); }
+
+/* ── 관리자 ───────────────────────────── */
+.admin { max-width: 1100px; margin: 0 auto; padding: 20px; }
+.admin-top { display: flex; justify-content: space-between; align-items: center; }
+.admin-top h1 { font-size: 20px; }
+.admin-tabs { display: flex; gap: 6px; margin: 16px 0; border-bottom: 1px solid var(--line); }
+.admin-tabs button { background: transparent; color: var(--muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 14px; }
+.admin-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+.admin-body section { display: flex; flex-direction: column; gap: 14px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row input { min-width: 160px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+td.actions { display: flex; gap: 6px; }
+td.nowrap { white-space: nowrap; }
+td.detail { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); max-width: 420px; word-break: break-all; }
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; background: var(--panel-2); }
+.badge.block, .badge.BLOCK { background: rgba(231,76,111,.2); color: #ff9bb3; }
+.badge.allow, .badge.ALLOW { background: rgba(0,184,148,.2); color: #6ee7c4; }
+.badge.cdr, .badge.CDR { background: rgba(47,109,246,.2); color: #9bbcff; }
+.badge.t-blocked, .badge.t-login-fail { background: rgba(231,76,111,.2); color: #ff9bb3; }
+.badge.t-login, .badge.t-navigate { background: rgba(0,184,148,.18); color: #6ee7c4; }
+.settings { max-width: 520px; }
+.settings label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.settings label.check { flex-direction: row; align-items: center; gap: 8px; }

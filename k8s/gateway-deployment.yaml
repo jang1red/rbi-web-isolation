@@ -1,0 +1,114 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: rbi
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: rbi-gateway:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: NEKO_URL
+              value: http://neko:8080
+            - name: CDP_HOST
+              value: neko
+            - name: CDP_PORT
+              value: "9222"
+            - name: DATA_DIR
+              value: /app/data
+            - name: DB_PATH
+              value: /app/data/rbi.db
+            - name: POLICY_DIR
+              value: /app/data/policies
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rbi-secret
+                  key: jwt-secret
+            - name: BOOTSTRAP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rbi-secret
+                  key: bootstrap-password
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: policy
+              mountPath: /app/data/policies
+            - name: frontend
+              mountPath: /app/frontend/dist
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: rbi-data-pvc
+        - name: policy
+          persistentVolumeClaim:
+            claimName: rbi-policy-pvc
+        - name: frontend
+          configMap:
+            name: rbi-frontend-dist   # 프론트엔드 빌드 결과를 ConfigMap 또는 emptyDir + initContainer 로 주입
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: rbi
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+# 외부 노출용 Ingress (nginx 예시)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rbi-ingress
+  namespace: rbi
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+spec:
+  rules:
+    - host: rbi.your-domain.com   # ★ 실제 도메인으로 교체
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 80
