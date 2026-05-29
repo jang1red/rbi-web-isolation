@@ -1,4 +1,4 @@
-// 워크스페이스 — 격리 브라우저 화면(Neko WebRTC) + 인포바 + 워터마크.
+// 워크스페이스 — 격리 브라우저 화면(RBCloud Browser WebRTC) + 인포바 + 워터마크.
 // 사용자는 로컬에 아무것도 설치하지 않고, 화면 스트림만 보고 조작합니다.
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -6,9 +6,8 @@ import Infobar from '../components/Infobar.jsx';
 import Watermark from '../components/Watermark.jsx';
 import { workspace, logout, wipe, clipboardEvent } from '../api.js';
 
-// Neko 임베드 URL. embed 파라미터로 Neko 자체 메뉴/툴바를 숨기고 화면만 표시.
-// (사용 중인 Neko 버전에 맞게 docs/ARCHITECTURE.md 참고하여 조정)
-const NEKO_SRC = '/neko/';
+// RBCloud Browser 임베드 URL. 메뉴/툴바를 숨기고 화면만 표시.
+const RBCLOUD_SRC = '/rbcloud/';
 
 export default function Workspace({ user, onLogout }) {
   const nav = useNavigate();
@@ -47,10 +46,10 @@ export default function Workspace({ user, onLogout }) {
       <Infobar user={user} onLogout={handleLogout} onOpenAdmin={() => nav('/admin')} />
       <div className="screen">
         <iframe
-          title="격리 브라우저"
-          src={NEKO_SRC}
+          title="RBCloud 격리 브라우저"
+          src={RBCLOUD_SRC}
           allow="autoplay; clipboard-read; clipboard-write; microphone; camera; display-capture"
-          className="neko-frame"
+          className="rbcloud-frame"
         />
         {ws?.watermark?.enabled && (
           <Watermark text={ws.watermark.text} opacity={ws.watermark.opacity} />

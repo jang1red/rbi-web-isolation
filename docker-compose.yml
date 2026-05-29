@@ -9,20 +9,19 @@ version: "3.9"
 
 services:
 
-  # ── 1. 격리 브라우저 (Neko + Chromium) ─────────────────────
-  neko:
-    build: ./neko-browser
+  # ── 1. RBCloud Browser (격리 브라우저 컨테이너) ─────────────
+  rbcloud:
+    build: ./rbcloud-browser
     restart: unless-stopped
     shm_size: "2gb"          # Chromium 렌더링 공유메모리
     environment:
-      # Neko 접속 비밀번호 (게이트웨이 인증 뒤에 가려지므로 내부용)
-      NEKO_PASSWORD: ${NEKO_PASSWORD:-userpass}
-      NEKO_ADMIN_PASSWORD: ${NEKO_ADMIN_PASSWORD:-adminpass}
+      # 접속 비밀번호 (게이트웨이 인증 뒤에 가려지므로 내부용)
+      NEKO_PASSWORD: ${RBCLOUD_PASSWORD:-userpass}
+      NEKO_ADMIN_PASSWORD: ${RBCLOUD_ADMIN_PASSWORD:-adminpass}
       # WebRTC 설정 (외부 노출 IP 필수 — NAT 환경)
-      NEKO_WEBRTC_NAT1TO1: ${NEKO_WEBRTC_NAT1TO1:-127.0.0.1}
-      NEKO_WEBRTC_UDPMUX: ${NEKO_WEBRTC_UDPMUX:-52000}
+      NEKO_WEBRTC_NAT1TO1: ${RBCLOUD_WEBRTC_NAT1TO1:-127.0.0.1}
+      NEKO_WEBRTC_UDPMUX: ${RBCLOUD_WEBRTC_UDPMUX:-52000}
       NEKO_WEBRTC_TCPMUX: 0
-      # 시작 페이지
       NEKO_CHROMIUM_FLAGS: >-
         --remote-debugging-port=9222
         --remote-debugging-address=0.0.0.0
@@ -34,10 +33,10 @@ services:
       - policy_data:/etc/chromium/policies/managed:ro
     ports:
       # WebRTC UDP (방화벽에서 외부 오픈 필요)
-      - "${NEKO_WEBRTC_UDPMUX:-52000}:52000/udp"
+      - "${RBCLOUD_WEBRTC_UDPMUX:-52000}:52000/udp"
     # 외부에 직접 노출하지 않음 — 게이트웨이 프록시를 통해서만 접근
     expose:
-      - "8080"   # Neko HTTP (게이트웨이 프록시)
+      - "8080"   # HTTP (게이트웨이 프록시)
       - "9222"   # CDP (게이트웨이 내부 연결)
     networks:
       - rbi-net
@@ -49,19 +48,19 @@ services:
     build: ./gateway
     restart: unless-stopped
     depends_on:
-      - neko
+      - rbcloud
     env_file: .env
     environment:
       NODE_ENV: production
-      NEKO_URL: http://neko:8080
-      CDP_HOST: neko
+      RBCLOUD_URL: http://rbcloud:8080
+      CDP_HOST: rbcloud
       CDP_PORT: 9222
       DATA_DIR: /app/data
       DB_PATH: /app/data/rbi.db
       POLICY_DIR: /app/data/policies
     volumes:
       - gateway_data:/app/data
-      # 정책 파일을 neko 컨테이너와 공유 (게이트웨이 쓰기 → neko 읽기)
+      # 정책 파일을 rbcloud 컨테이너와 공유 (게이트웨이 쓰기 → rbcloud 읽기)
       - policy_data:/app/data/policies
       # 프론트엔드 빌드 결과 서빙
       - ./frontend/dist:/app/frontend/dist:ro

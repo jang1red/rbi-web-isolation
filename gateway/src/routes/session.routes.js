@@ -1,6 +1,6 @@
 // 세션/워크스페이스 라우트 — 인포바 네비게이션, 현재 URL, 워터마크/클립보드 설정, 흔적 폐기.
 import { Router } from 'express';
-import { navigate, currentUrl, goBack, goForward, reload, wipeSession, isCdpAlive } from '../neko.js';
+import { navigate, currentUrl, goBack, goForward, reload, wipeSession, isCdpAlive } from '../rbcloud.js';
 import { getAllSettings, getSetting } from '../policy.js';
 import { audit } from '../audit.js';
 import { authRequired, clientIp } from '../middleware/auth.middleware.js';

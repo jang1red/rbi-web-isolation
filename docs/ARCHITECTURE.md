@@ -12,7 +12,7 @@
 │  │  ┌──────────────┐   ┌──────────────────────────────────────────────────────┐  │ │
 │  │  │  React SPA    │   │              격리 워크스페이스 화면                     │  │ │
 │  │  │  (로그인/관리) │   │                                                        │  │ │
-│  │  │  인포바        │   │   [Neko WebRTC 스트림 iframe — 격리 브라우저 화면]      │  │ │
+│  │  │  인포바        │   │   [RBCloud WebRTC 스트림 iframe — 격리 브라우저 화면]      │  │ │
 │  │  │  워터마크 오버레이│  │   [워터마크: username · datetime 반복 텍스트]           │  │ │
 │  │  └──────┬───────┘   └──────────────────────────┬───────────────────────────┘  │ │
 │  └─────────┼──────────────────────────────────────┼──────────────────────────────┘ │
@@ -24,7 +24,7 @@
 │                                                                                      │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐  ┌─────────────────────┐   │
 │  │  Auth        │  │  Policy      │  │  CDR Hook       │  │  Reverse Proxy      │   │
-│  │  JWT + TOTP  │  │  URL / File  │  │  파일 무해화     │  │  /neko/* → Neko     │   │
+│  │  JWT + TOTP  │  │  URL / File  │  │  파일 무해화     │  │  /rbcloud/* → RBCloud Browser     │   │
 │  │  ZT Condition│  │  Clipboard   │  │  외부 엔진 연동  │  │  WebSocket upgrade  │   │
 │  └─────────────┘  └──────────────┘  └────────────────┘  └─────────────────────┘   │
 │                                                                                      │
@@ -38,7 +38,7 @@
           /api/admin                   │          │
                                        ▼          ▼
                          ┌────────────────────────────────────────┐
-                         │      Neko 컨테이너 (Docker/K8s Pod)      │
+                         │      RBCloud Browser 컨테이너 (Docker/K8s Pod)      │
                          │                                          │
                          │  ┌──────────────────────────────────┐   │
                          │  │  Chromium 브라우저 (Xvfb + PulseAudio)│  │
@@ -98,8 +98,8 @@
   │◀── JWT Cookie ─────────│── INSERT session ───▶│
   │    rbi_session=...     │── audit('login') ───▶│
   │                       │                      │
-  │── GET /neko/* ─────────▶│                      │
-  │   (Cookie)             │── gateNeko()         │
+  │── GET /rbcloud/* ─────────▶│                      │
+  │   (Cookie)             │── gateRBCloud()         │
   │                       │   verifyToken        │
   │                       │   getUserById        │
   │◀── 격리 브라우저 프록시 ──│                      │
@@ -108,7 +108,7 @@
 ## Managed Policy 갱신 사이클
 
 ```
-관리자                 게이트웨이            Chromium (Neko)
+관리자                 게이트웨이            Chromium (RBCloud Browser)
   │                       │                     │
   │── POST /admin/url-policies ──▶│             │
   │                       │── SQLite INSERT      │
@@ -121,9 +121,9 @@
 
 | 컴포넌트 | 기술 | 역할 |
 |---|---|---|
-| `gateway/` | Node.js 20, Express | 인증·정책·감사·Neko 프록시·관리 API |
+| `gateway/` | Node.js 20, Express | 인증·정책·감사·RBCloud Browser 프록시·관리 API |
 | `frontend/` | React 18, Vite | 로그인·워크스페이스(인포바+워터마크)·관리자 콘솔 |
-| `neko-browser/` | Neko (m1k1o/neko) + Chromium | 격리 브라우저, WebRTC 스트리밍 |
+| `rbcloud-browser/` | RBCloud Browser + Chromium | 격리 브라우저, WebRTC 스트리밍 |
 | `docker-compose.yml` | Docker Compose | 로컬/온프레미스 단일 호스트 배포 |
 | `k8s/` | Kubernetes YAML | 클라우드/K8s 확장 배포 |
 | `data/rbi.db` | SQLite (WAL) | 사용자·세션·정책·감사 로그 |

@@ -35,17 +35,17 @@ export const config = {
   // 데이터/정책 경로
   dataDir: env('DATA_DIR', path.resolve(__dirname, '../data')),
   dbPath: env('DB_PATH', path.resolve(__dirname, '../data/rbi.db')),
-  // Chromium managed policy 가 마운트되는 공유 볼륨 경로(neko 컨테이너와 공유)
+  // Chromium managed policy 가 마운트되는 공유 볼륨 경로(rbcloud-browser 컨테이너와 공유)
   policyDir: env('POLICY_DIR', path.resolve(__dirname, '../data/policies')),
 
-  // Neko (격리 브라우저) 연결
-  neko: {
-    // 게이트웨이가 프록시할 Neko 내부 주소
-    url: env('NEKO_URL', 'http://neko:8080'),
-    // Neko 의 WebSocket 경로 (v3: /api/ws, v2: /ws)
-    wsPath: env('NEKO_WS_PATH', '/api/ws'),
+  // RBCloud Browser (격리 브라우저) 연결
+  rbcloud: {
+    // 게이트웨이가 프록시할 RBCloud Browser 내부 주소
+    url: env('RBCLOUD_URL', 'http://rbcloud:8080'),
+    // WebSocket 경로 (v3: /api/ws, v2: /ws)
+    wsPath: env('RBCLOUD_WS_PATH', '/api/ws'),
     // 원격 브라우저 CDP(원격 디버깅) 엔드포인트
-    cdpHost: env('CDP_HOST', 'neko'),
+    cdpHost: env('CDP_HOST', 'rbcloud'),
     cdpPort: parseInt(env('CDP_PORT', '9222'), 10),
     // 격리 환경 시작(홈) 페이지
     homepage: env('RBI_HOMEPAGE', 'about:blank'),

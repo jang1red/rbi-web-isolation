@@ -23,10 +23,10 @@ spec:
           env:
             - name: NODE_ENV
               value: production
-            - name: NEKO_URL
-              value: http://neko:8080
+            - name: RBCLOUD_URL
+              value: http://rbcloud:8080
             - name: CDP_HOST
-              value: neko
+              value: rbcloud
             - name: CDP_PORT
               value: "9222"
             - name: DATA_DIR

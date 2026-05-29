@@ -125,7 +125,7 @@ export function setSetting(key, value) {
 }
 
 // ── Chromium Managed Policy 생성 ──────────────────────────────
-// 격리 브라우저(neko)가 /etc/chromium/policies/managed/policy.json 으로 마운트.
+// 격리 브라우저(rbcloud-browser)가 /etc/chromium/policies/managed/policy.json 으로 마운트.
 export function regenerateManagedPolicy() {
   const policies = db.prepare('SELECT * FROM url_policies WHERE enabled = 1').all();
   const allowlist = policies.filter((p) => p.action === 'allow').map((p) => p.pattern);
@@ -143,7 +143,7 @@ export function regenerateManagedPolicy() {
     // 다운로드 통제: 0=허용, 2=위험 차단, 3=모든 다운로드 차단
     DownloadRestrictions: hasBlockedDownload ? 3 : 0,
     // 격리 브라우저 안내 화면 단순화
-    HomepageLocation: config.neko.homepage,
+    HomepageLocation: config.rbcloud.homepage,
     BookmarkBarEnabled: false,
     BrowserSignin: 0,
     SyncDisabled: true,

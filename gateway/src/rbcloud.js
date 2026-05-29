@@ -1,11 +1,11 @@
-// 격리 브라우저 제어 — CDP(Chrome DevTools Protocol)로 Neko 안의 Chromium 을 구동.
+// 격리 브라우저 제어 — CDP(Chrome DevTools Protocol)로 RBCloud Browser 안의 Chromium 을 구동.
 //
-// 담당 역할(소개서 "인포바를 통한 안전 브라우징", "URL을 통한 행위 통제 및 상세 로그"):
+// 담당 역할("인포바를 통한 안전 브라우징", "URL을 통한 행위 통제 및 상세 로그"):
 //   - 인포바에서 입력한 URL 로 원격 브라우저를 네비게이트
 //   - 현재 URL 조회 (인포바 동기화)
 //   - 네트워크 요청 로깅 + 다운로드 가로채기(파일 통제/CDR 연동)
 //
-// CDP 연결 실패 시에도 게이트웨이는 정상 동작하며(스트리밍은 Neko 가 직접 처리),
+// CDP 연결 실패 시에도 게이트웨이는 정상 동작하며(스트리밍은 RBCloud Browser 가 직접 처리),
 // 네비게이션은 graceful 하게 degrade 됩니다.
 import CDP from 'chrome-remote-interface';
 import config from './config.js';
@@ -15,13 +15,13 @@ import { evaluateUrl, evaluateFile } from './policy.js';
 
 let client = null;
 let connecting = null;
-let lastUrl = config.neko.homepage;
+let lastUrl = config.rbcloud.homepage;
 
 async function connect() {
   if (client) return client;
   if (connecting) return connecting;
   connecting = (async () => {
-    const c = await CDP({ host: config.neko.cdpHost, port: config.neko.cdpPort });
+    const c = await CDP({ host: config.rbcloud.cdpHost, port: config.rbcloud.cdpPort });
     const { Page, Network, Runtime } = c;
     await Page.enable();
     await Network.enable();
@@ -76,7 +76,6 @@ export async function navigate(url, ctx = {}) {
     return { ok: true, url };
   } catch (err) {
     logger.warn({ err: err.message }, 'CDP navigate 실패 — degrade');
-    // CDP 불가 시: 정책 평가/로깅은 완료, 실제 이동은 Neko UI 에 위임
     return { ok: true, url, degraded: true };
   }
 }

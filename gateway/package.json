@@ -1,7 +1,7 @@
 {
   "name": "rbi-gateway",
   "version": "1.0.0",
-  "description": "RBI 게이트웨이 — 인증·정책·감사·Neko 프록시·관리 API",
+  "description": "RBI 게이트웨이 — 인증·정책·감사·RBCloud Browser 프록시·관리 API",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

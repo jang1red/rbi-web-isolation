@@ -1,42 +1,43 @@
 ---
-# Neko 격리 브라우저 Deployment
-# 소개서의 "K8S 기반 쉬운 이식" — 세션별 Pod 확장 시 HPA 또는 세션 오케스트레이터 연동 필요
+# RBCloud Browser 격리 브라우저 Deployment
+# "K8S 기반 쉬운 이식" — 세션별 Pod 확장 시 HPA 또는 세션 오케스트레이터 연동 필요
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: neko
+  name: rbcloud
   namespace: rbi
   labels:
-    app: neko
+    app: rbcloud
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: neko
+      app: rbcloud
   template:
     metadata:
       labels:
-        app: neko
+        app: rbcloud
     spec:
       containers:
-        - name: neko
-          image: ghcr.io/m1k1o/neko:chromium
+        - name: rbcloud
+          image: rbi-rbcloud-browser:latest
+          imagePullPolicy: IfNotPresent
           env:
             - name: NEKO_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: rbi-secret
-                  key: neko-password
+                  key: rbcloud-password
             - name: NEKO_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: rbi-secret
-                  key: neko-admin-password
+                  key: rbcloud-admin-password
             - name: NEKO_WEBRTC_NAT1TO1
               valueFrom:
                 configMapKeyRef:
                   name: rbi-config
-                  key: NEKO_WEBRTC_NAT1TO1
+                  key: RBCLOUD_WEBRTC_NAT1TO1
             - name: NEKO_WEBRTC_UDPMUX
               value: "52000"
             - name: NEKO_CHROMIUM_FLAGS
@@ -75,11 +76,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: neko
+  name: rbcloud
   namespace: rbi
 spec:
   selector:
-    app: neko
+    app: rbcloud
   ports:
     - name: http
       port: 8080
