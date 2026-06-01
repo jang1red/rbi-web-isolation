@@ -6,15 +6,20 @@ import Infobar from '../components/Infobar.jsx';
 import Watermark from '../components/Watermark.jsx';
 import { workspace, logout, wipe, clipboardEvent } from '../api.js';
 
-// RBCloud Browser 임베드 URL. 메뉴/툴바를 숨기고 화면만 표시.
-const RBCLOUD_SRC = '/rbcloud/';
-
 export default function Workspace({ user, onLogout }) {
   const nav = useNavigate();
   const [ws, setWs] = useState(null);
+  // RBCloud Browser iframe URL — 워크스페이스 API에서 받은 비밀번호로 자동 로그인
+  const [rbcloudSrc, setRbcloudSrc] = useState('/rbcloud/');
 
   useEffect(() => {
-    workspace().then(setWs).catch(() => {});
+    workspace().then((data) => {
+      setWs(data);
+      // ?pwd= 파라미터로 자동 로그인 (패치된 index.html의 스크립트가 처리)
+      if (data?.rbcPwd) {
+        setRbcloudSrc(`/rbcloud/?pwd=${encodeURIComponent(data.rbcPwd)}`);
+      }
+    }).catch(() => {});
   }, []);
 
   // 클립보드 행위 감사 (RB→PC 유출 추적). 실제 차단은 Chromium 관리정책에서 강제.
@@ -47,7 +52,7 @@ export default function Workspace({ user, onLogout }) {
       <div className="screen">
         <iframe
           title="RBCloud 격리 브라우저"
-          src={RBCLOUD_SRC}
+          src={rbcloudSrc}
           allow="autoplay; clipboard-read; clipboard-write; microphone; camera; display-capture"
           className="rbcloud-frame"
         />

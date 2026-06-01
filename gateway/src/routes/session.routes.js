@@ -4,6 +4,7 @@ import { navigate, currentUrl, goBack, goForward, reload, wipeSession, isCdpAliv
 import { getAllSettings, getSetting } from '../policy.js';
 import { audit } from '../audit.js';
 import { authRequired, clientIp } from '../middleware/auth.middleware.js';
+import config from '../config.js';
 
 const router = Router();
 router.use(authRequired);
@@ -53,6 +54,8 @@ router.get('/workspace', (req, res) => {
       pcToRb: s.clipboard_pc_to_rb,
       rbToPc: s.clipboard_rb_to_pc,
     },
+    // RBCloud Browser 자동 로그인용 비밀번호 (이미 인증된 사용자에게만 노출)
+    rbcPwd: config.rbcloud.password,
   });
 });
 

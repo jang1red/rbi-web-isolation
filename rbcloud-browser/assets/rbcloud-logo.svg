@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- 배경 원 -->
+  <circle cx="100" cy="100" r="95" fill="#1a2940"/>
+  <!-- 구름 모양 (보안 격리 상징) -->
+  <path d="M60 120 Q50 120 50 110 Q50 98 62 97 Q62 80 78 78 Q82 65 96 65 Q114 65 118 80 Q130 80 134 92 Q145 93 145 104 Q145 120 130 120 Z"
+        fill="#2d6a9f" opacity="0.85"/>
+  <!-- 방패 모양 (보안 상징) -->
+  <path d="M100 82 L120 90 L120 108 Q120 122 100 130 Q80 122 80 108 L80 90 Z"
+        fill="#4a9fd4" opacity="0.9"/>
+  <!-- RB 텍스트 -->
+  <text x="100" y="113" font-family="Arial Black, sans-serif" font-size="26" font-weight="900"
+        text-anchor="middle" fill="white" letter-spacing="1">RB</text>
+  <!-- 하단 텍스트 -->
+  <text x="100" y="155" font-family="Arial, sans-serif" font-size="13" font-weight="600"
+        text-anchor="middle" fill="#4a9fd4" letter-spacing="2">CLOUD</text>
+</svg>

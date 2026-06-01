@@ -49,6 +49,8 @@ export const config = {
     cdpPort: parseInt(env('CDP_PORT', '9222'), 10),
     // 격리 환경 시작(홈) 페이지
     homepage: env('RBI_HOMEPAGE', 'about:blank'),
+    // RBCloud Browser 접속 비밀번호 (iframe 자동 로그인용, docker-compose RBCLOUD_PASSWORD와 동일)
+    password: env('RBCLOUD_PASSWORD', 'userpass'),
   },
 
   // 감사 로그
