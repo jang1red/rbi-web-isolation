@@ -99,10 +99,16 @@ app.use('/rbcloud', gateRBCloud, rbcloudProxy);
 // ── 프론트엔드 정적 서빙 ───────────────────────────────────
 // __dirname = /app/src  →  ../frontend/dist = /app/frontend/dist
 const frontendDir = path.resolve(__dirname, '../frontend/dist');
+// 프론트엔드도 캐시하지 않음 — 브랜딩/UI 변경 즉시 반영 (새로고침만으로)
+const noStore = (res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.set('Pragma', 'no-cache');
+};
 if (fs.existsSync(frontendDir)) {
-  app.use(express.static(frontendDir));
+  app.use(express.static(frontendDir, { etag: false, lastModified: false, setHeaders: noStore }));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/rbcloud')) return next();
+    noStore(res);
     res.sendFile(path.join(frontendDir, 'index.html'));
   });
 } else {
