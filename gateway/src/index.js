@@ -83,6 +83,15 @@ const rbcloudProxy = createProxyMiddleware({
   // 사용자별 전용 컨테이너로 동적 라우팅
   router: (req) => req._rbiTarget || resolveTarget(req).target || config.rbcloud.url,
   logger,
+  on: {
+    // 격리 브라우저 리소스를 캐시하지 않음 — 브랜딩 즉시 반영 + RBI 흔적 방지 철학
+    proxyRes: (proxyRes) => {
+      proxyRes.headers['cache-control'] = 'no-store, no-cache, must-revalidate, max-age=0';
+      proxyRes.headers['pragma'] = 'no-cache';
+      delete proxyRes.headers['etag'];
+      delete proxyRes.headers['last-modified'];
+    },
+  },
 });
 
 app.use('/rbcloud', gateRBCloud, rbcloudProxy);

@@ -1,21 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="320" height="120">
-  <!-- rb 파란 글자 -->
-  <!-- r -->
-  <path d="M18 38 L18 82 L30 82 L30 62 Q30 52 40 52 L50 52 L50 40 Q38 38 30 46 L30 38 Z"
-        fill="#1B4DB8"/>
-  <!-- b -->
-  <path d="M58 28 L58 82 L70 82 L70 62 Q80 70 90 62 Q98 55 98 52 Q98 40 88 36 Q78 32 70 40 L70 28 Z
-           M70 48 Q78 44 84 50 Q88 54 84 58 Q78 64 70 60 Z"
-        fill="#1B4DB8"/>
-  <!-- 헥사곤 (b 위 오른쪽) -->
-  <polygon points="104,28 114,22 124,28 124,40 114,46 104,40"
-           fill="#1B4DB8"/>
-  <!-- 헥사곤 내부 흰색 작은 사각형 -->
-  <rect x="109" y="30" width="10" height="10" rx="1" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 120" width="380" height="120">
+  <!-- ===== RB Cloud 로고 ===== -->
+  <!-- 'rb' 파란 소문자 (굵은 산세리프) -->
+  <text x="8" y="92" font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-size="104" font-weight="900" fill="#1B4DB8" letter-spacing="-6">rb</text>
 
-  <!-- CLOUD 텍스트 -->
-  <text x="140" y="74"
-        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
-        font-size="46" font-weight="900" letter-spacing="2"
-        fill="#2B2F5E">CLOUD</text>
+  <!-- 육각형 (b 오른쪽 위) — RB Cloud 심볼 -->
+  <polygon points="138,18 156,8 174,18 174,40 156,50 138,40" fill="#1B4DB8"/>
+  <!-- 육각형 안 흰색 사각형 -->
+  <rect x="148" y="20" width="16" height="16" rx="2" fill="#ffffff"/>
+
+  <!-- 'CLOUD' 진한 네이비 굵은체 -->
+  <text x="150" y="88" font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-size="58" font-weight="900" fill="#2B2F5E" letter-spacing="1">CLOUD</text>
 </svg>
