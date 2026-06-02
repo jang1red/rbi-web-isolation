@@ -1,15 +1,31 @@
 /* ===== RBCloud Browser 브랜딩 오버라이드 ===== */
 
-/* ── 로그인 화면 로고 교체 ──────────────────── */
-/* n.eko 고양이 이미지 완전 숨김 */
+/* ── 로그인 화면 고양이 로고/텍스트 완전 숨김 ── */
+/* neko 로그인 화면은 인라인 SVG(고양이) + 'n.eko' 텍스트. 모두 제거 후 RBCloud 표시. */
 #neko img[src*="logo"],
 img[src*="logo.800bec71"],
 img[alt*="neko"],
 img[alt*="n.eko"],
 .logo img,
 .n-neko-login img,
-[class*="logo"] img {
+[class*="logo"] img,
+/* 로그인/접속 화면의 인라인 SVG 로고 (고양이) */
+[class*="login"] svg,
+[class*="connect"] svg,
+.neko-login svg,
+form svg,
+[class*="header"] svg.logo {
   display: none !important;
+}
+
+/* 로그인 카드 상단에 RBCloud 로고 강제 삽입 */
+[class*="login"] form::before,
+.neko-login::before {
+  content: "";
+  display: block;
+  height: 56px;
+  margin: 0 auto 12px;
+  background: url('/img/logo.800bec71.svg') center/contain no-repeat;
 }
 
 /* 로그인 모달 로고 자리에 RBCloud 로고 표시 */

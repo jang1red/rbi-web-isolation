@@ -15,12 +15,13 @@ export default function Workspace({ user, onLogout }) {
   useEffect(() => {
     workspace().then((data) => {
       setWs(data);
-      // ?pwd= 파라미터로 자동 로그인 (패치된 index.html의 스크립트가 처리)
+      // ?usr=&pwd= 파라미터로 자동 로그인 (표시이름+비밀번호, rbcloud-init.js가 처리)
       if (data?.rbcPwd) {
-        setRbcloudSrc(`/rbcloud/?pwd=${encodeURIComponent(data.rbcPwd)}`);
+        const u = encodeURIComponent(user?.username || 'RBCloud');
+        setRbcloudSrc(`/rbcloud/?usr=${u}&pwd=${encodeURIComponent(data.rbcPwd)}`);
       }
     }).catch(() => {});
-  }, []);
+  }, [user]);
 
   // 클립보드 행위 감사 (RB→PC 유출 추적). 실제 차단은 Chromium 관리정책에서 강제.
   useEffect(() => {

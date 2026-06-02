@@ -46,6 +46,8 @@ export async function createSession(sessionId, { username } = {}) {
       name,
       Labels: { 'rbi.session': sessionId, 'rbi.user': username || '', 'rbi.managed': 'true' },
       Env: [
+        // neko 자체 로그인 화면 제거 — 게이트웨이 JWT 인증 + 컨테이너 격리로 이미 보호됨
+        'NEKO_MEMBER_PROVIDER=noauth',
         `NEKO_PASSWORD=${config.rbcloud.password}`,
         `NEKO_ADMIN_PASSWORD=${config.rbcloud.adminPassword}`,
         `NEKO_WEBRTC_NAT1TO1=${o.natIp}`,

@@ -1,48 +1,56 @@
 /* ===== RBCloud Browser 자동 로그인 + 브랜딩 초기화 ===== */
 (function () {
-  /* 1) 페이지 타이틀 강제 변경 */
   document.title = 'RBCloud Browser';
 
-  /* 2) URL ?pwd= 파라미터로 자동 로그인 */
   var params = new URLSearchParams(window.location.search);
   var pwd = params.get('pwd');
+  var usr = params.get('usr') || 'RBCloud';
   if (!pwd) return;
 
-  var tries = 0;
-  var MAX = 60; /* 최대 18초 대기 */
+  /* React/Vue 가 무시하지 않도록 native value setter 로 입력 */
+  function setVal(el, val) {
+    try {
+      var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      setter.call(el, val);
+    } catch (e) { el.value = val; }
+    el.dispatchEvent(new Event('input',  { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event('keyup',  { bubbles: true }));
+  }
 
+  var tries = 0, MAX = 80; /* 최대 ~24초 */
   var timer = setInterval(function () {
     tries++;
     if (tries > MAX) { clearInterval(timer); return; }
 
-    /* 비밀번호 input 찾기 (n.eko v2 기준) */
-    var inputs = Array.from(document.querySelectorAll('input')).filter(function (el) {
-      return el.type === 'password' ||
-        (el.placeholder && /pass|비밀번호|password/i.test(el.placeholder));
-    });
+    var inputs = Array.from(document.querySelectorAll('input'));
     if (!inputs.length) return;
 
-    var inp = inputs[0];
-
-    /* React / Vue native value setter (단순 .value= 는 무시됨) */
-    try {
-      var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-      setter.call(inp, pwd);
-      inp.dispatchEvent(new Event('input',  { bubbles: true }));
-      inp.dispatchEvent(new Event('change', { bubbles: true }));
-    } catch (e) {
-      inp.value = pwd;
-    }
-
-    /* 연결 버튼 찾아서 클릭 */
-    var btns = Array.from(document.querySelectorAll('button, input[type=submit]'));
-    var btn = btns.find(function (b) {
-      return /연결|connect|join|enter|login/i.test(b.textContent + (b.value || ''));
+    /* 비밀번호 input */
+    var passInput = inputs.find(function (el) {
+      return el.type === 'password' || /pass|비밀번호/i.test(el.placeholder || '');
+    });
+    /* 표시 이름(username) input — 비밀번호가 아닌 첫 text input */
+    var userInput = inputs.find(function (el) {
+      return el !== passInput &&
+        (el.type === 'text' || el.type === '' || /이름|name|user|표시/i.test(el.placeholder || ''));
     });
 
-    if (btn) {
-      setTimeout(function () { btn.click(); }, 150);
+    if (!passInput) return; /* 폼 아직 미로딩 */
+
+    /* 표시 이름 + 비밀번호 입력 (neko v3 는 둘 다 필요) */
+    if (userInput) setVal(userInput, usr);
+    setVal(passInput, pwd);
+
+    /* '연결' 버튼 — disabled 풀릴 때까지 대기 */
+    var btns = Array.from(document.querySelectorAll('button, input[type=submit]'));
+    var btn = btns.find(function (b) {
+      return /연결|connect|join|enter|login|로그인/i.test((b.textContent || '') + (b.value || ''));
+    });
+
+    if (btn && !btn.disabled) {
+      setTimeout(function () { btn.click(); }, 250);
       clearInterval(timer);
     }
-  }, 300);
+  }, 250);
 })();
