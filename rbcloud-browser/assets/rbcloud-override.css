@@ -1,49 +1,76 @@
 /* ===== RBCloud Browser 브랜딩 오버라이드 ===== */
 
-/* n.eko 기본 색상 → RBCloud 색상 */
-:root {
-  --primary-color: #1a2940 !important;
-  --accent-color:  #4a9fd4 !important;
-}
-
-/* n.eko 고양이 로고 숨김 */
-#neko header .logo img,
-#neko .logo img,
-.header .logo img,
-img[src*="neko"],
+/* ── 로그인 화면 로고 교체 ──────────────────── */
+/* n.eko 고양이 이미지 완전 숨김 */
+#neko img[src*="logo"],
+img[src*="logo.800bec71"],
 img[alt*="neko"],
-img[alt*="n.eko"] {
+img[alt*="n.eko"],
+.logo img,
+.n-neko-login img,
+[class*="logo"] img {
   display: none !important;
 }
 
-/* 헤더에 RBCloud 텍스트 삽입 */
+/* 로그인 모달 로고 자리에 RBCloud 로고 표시 */
+#neko img[src*="logo"]::before,
+.n-neko-login .logo::before {
+  display: block !important;
+}
+
+/* 로그인 박스 상단 로고 영역 교체 */
+#neko .login .logo,
+#neko [class*="login"] [class*="logo"],
+.neko-login-logo {
+  background-image: url('/img/logo.800bec71.svg') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  min-height: 60px !important;
+}
+
+/* ── 색상 테마 교체 ─────────────────────────── */
+:root {
+  --primary-color:   #1B4DB8 !important;
+  --accent-color:    #1B4DB8 !important;
+  --neko-color:      #1B4DB8 !important;
+}
+
+/* 버튼, 포커스, 강조 색상 */
+button[class*="connect"],
+button[class*="primary"],
+.btn-primary,
+[class*="n-btn"][class*="primary"] {
+  background-color: #1B4DB8 !important;
+  border-color: #1B4DB8 !important;
+}
+
+/* 헤더 상단 로고 영역 */
+#neko header .logo img,
+#neko header [class*="logo"] img {
+  display: none !important;
+}
 #neko header .logo::after {
   content: "🛡 RBCloud Browser";
   font-size: 13px;
   font-weight: 700;
-  color: #4a9fd4;
+  color: #1B4DB8;
   letter-spacing: 1px;
   padding-left: 6px;
   white-space: nowrap;
 }
 
-/* n.eko 링크/텍스트 숨김 */
+/* ── n.eko 텍스트/링크 숨김 ──────────────────── */
 a[href*="m1k1o"],
 a[href*="github.com/m1k1o"],
-footer a[href*="neko"],
-.version-info,
-[class*="neko-text"] {
+[class*="version"],
+footer a[href*="neko"] {
   display: none !important;
 }
 
-/* 로그인 모달 헤더 */
-.modal .modal__header,
-.login .title {
-  background-color: #1a2940 !important;
-}
-
-/* 연결 버튼 색상 */
-.btn-connect, button[type="submit"] {
-  background-color: #4a9fd4 !important;
-  border-color: #1a2940 !important;
+/* ── 로그인 화면 타이틀 색상 ─────────────────── */
+[class*="login"] h1,
+[class*="login"] h2,
+[class*="login"] .title {
+  color: #2B2F5E !important;
 }

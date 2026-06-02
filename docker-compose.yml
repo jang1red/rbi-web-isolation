@@ -7,16 +7,17 @@
 
 services:
 
-  # ── 1. RBCloud Browser (격리 브라우저 컨테이너) ─────────────
+  # ── 1. RBCloud Browser 이미지 빌더 ─────────────────────────
+  # 오케스트레이터가 로그인 시 이 이미지로 "사용자 전용 컨테이너"를 동적 생성합니다.
+  # 이 서비스 자체는 이미지 빌드 + 네트워크/볼륨 보장용으로 1회 기동됩니다.
   rbcloud:
     build: ./rbcloud-browser
+    image: rbi-web-isolation-rbcloud   # 오케스트레이터가 참조하는 이미지명 고정
     restart: unless-stopped
-    shm_size: "2gb"          # Chromium 렌더링 공유메모리
+    shm_size: "2gb"
     environment:
-      # 접속 비밀번호 (게이트웨이 인증 뒤에 가려지므로 내부용)
       NEKO_PASSWORD: ${RBCLOUD_PASSWORD:-userpass}
       NEKO_ADMIN_PASSWORD: ${RBCLOUD_ADMIN_PASSWORD:-adminpass}
-      # WebRTC 설정 (외부 노출 IP 필수 — NAT 환경)
       NEKO_WEBRTC_NAT1TO1: ${RBCLOUD_WEBRTC_NAT1TO1:-127.0.0.1}
       NEKO_WEBRTC_UDPMUX: ${RBCLOUD_WEBRTC_UDPMUX:-52000}
       NEKO_WEBRTC_TCPMUX: 0
@@ -27,21 +28,18 @@ services:
         --disable-default-apps
         --disable-session-crashed-bubble
     volumes:
-      # 게이트웨이가 생성한 Managed Policy JSON 을 Chromium 에 마운트
       - policy_data:/etc/chromium/policies/managed:ro
     ports:
-      # WebRTC UDP (방화벽에서 외부 오픈 필요)
       - "${RBCLOUD_WEBRTC_UDPMUX:-52000}:52000/udp"
-    # 외부에 직접 노출하지 않음 — 게이트웨이 프록시를 통해서만 접근
     expose:
-      - "8080"   # HTTP (게이트웨이 프록시)
-      - "9222"   # CDP (게이트웨이 내부 연결)
+      - "8080"
+      - "9222"
     networks:
       - rbi-net
     cap_add:
-      - SYS_ADMIN   # Chromium sandbox
+      - SYS_ADMIN
 
-  # ── 2. 게이트웨이 (Node.js: 인증·정책·감사·프록시) ──────────
+  # ── 2. 게이트웨이 (Node.js: 인증·정책·감사·오케스트레이터) ──
   gateway:
     build: ./gateway
     restart: unless-stopped
@@ -56,14 +54,24 @@ services:
       DATA_DIR: /app/data
       DB_PATH: /app/data/rbi.db
       POLICY_DIR: /app/data/policies
+      # ── 세션 오케스트레이터 ──
+      ORCHESTRATOR_ENABLED: "true"
+      RBCLOUD_IMAGE: rbi-web-isolation-rbcloud
+      RBI_NETWORK: rbi-web-isolation_rbi-net
+      RBI_POLICY_VOLUME: rbi-web-isolation_policy_data
+      RBI_BASE_UDP_PORT: "52001"
+      RBI_MAX_SESSIONS: "50"
     volumes:
       - gateway_data:/app/data
-      # 정책 파일을 rbcloud 컨테이너와 공유 (게이트웨이 쓰기 → rbcloud 읽기)
       - policy_data:/app/data/policies
-      # 프론트엔드 빌드 결과 서빙
       - ./frontend/dist:/app/frontend/dist:ro
+      # ★ Docker 데몬 소켓 — 게이트웨이가 사용자별 컨테이너를 생성/삭제
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "${GATEWAY_PORT:-8080}:8080"
+      # 세션별 WebRTC UDP 포트 풀 (52001~52050) — 동적 컨테이너가 직접 노출
+      # (Docker가 각 세션 컨테이너에 호스트 포트를 매핑하므로 게이트웨이엔 불필요하지만
+      #  방화벽 문서화를 위해 범위를 명시)
     networks:
       - rbi-net
 
@@ -74,3 +82,4 @@ volumes:
 networks:
   rbi-net:
     driver: bridge
+    name: rbi-web-isolation_rbi-net

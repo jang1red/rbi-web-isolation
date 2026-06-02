@@ -9,10 +9,11 @@ import {
 } from '../auth.js';
 import { audit } from '../audit.js';
 import { authRequired, clientIp } from '../middleware/auth.middleware.js';
+import { createSession, destroySession } from '../orchestrator.js';
 
 const router = Router();
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password, mfaToken } = req.body || {};
   const ip = clientIp(req);
   const user = getUserByName(username || '');
@@ -44,6 +45,19 @@ router.post('/login', (req, res) => {
     'INSERT INTO sessions (id, user_id, client_ip, user_agent) VALUES (?, ?, ?, ?)'
   ).run(sessionId, user.id, ip, req.headers['user-agent'] || '');
 
+  // ★ 사용자 전용 격리 컨테이너 생성 (세션 격리의 핵심)
+  if (config.orchestrator.enabled) {
+    try {
+      await createSession(sessionId, { username: user.username });
+      audit('container-create', { user, sessionId, ip });
+    } catch (err) {
+      // 컨테이너 생성 실패 시 세션 롤백
+      db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
+      audit('container-fail', { user, sessionId, ip, detail: { error: err.message } });
+      return res.status(503).json({ error: `격리 환경 생성 실패: ${err.message}` });
+    }
+  }
+
   const token = issueToken(user, sessionId);
   res.cookie(config.cookieName, token, {
     httpOnly: true, sameSite: 'lax', secure: config.cookieSecure, maxAge: 8 * 3600 * 1000,
@@ -57,8 +71,13 @@ router.post('/login', (req, res) => {
   });
 });
 
-router.post('/logout', authRequired, (req, res) => {
+router.post('/logout', authRequired, async (req, res) => {
   db.prepare("UPDATE sessions SET ended_at = datetime('now') WHERE id = ?").run(req.sessionId);
+  // ★ 사용자 전용 컨테이너 삭제 → 쿠키·캐시·히스토리 완전 폐기
+  if (config.orchestrator.enabled) {
+    await destroySession(req.sessionId);
+    audit('container-destroy', { user: req.user, sessionId: req.sessionId, ip: clientIp(req) });
+  }
   audit('logout', { user: req.user, sessionId: req.sessionId, ip: clientIp(req) });
   res.clearCookie(config.cookieName);
   res.json({ ok: true });

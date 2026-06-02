@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="320" height="120">
+  <!-- rb 파란 글자 -->
+  <!-- r -->
+  <path d="M18 38 L18 82 L30 82 L30 62 Q30 52 40 52 L50 52 L50 40 Q38 38 30 46 L30 38 Z"
+        fill="#1B4DB8"/>
+  <!-- b -->
+  <path d="M58 28 L58 82 L70 82 L70 62 Q80 70 90 62 Q98 55 98 52 Q98 40 88 36 Q78 32 70 40 L70 28 Z
+           M70 48 Q78 44 84 50 Q88 54 84 58 Q78 64 70 60 Z"
+        fill="#1B4DB8"/>
+  <!-- 헥사곤 (b 위 오른쪽) -->
+  <polygon points="104,28 114,22 124,28 124,40 114,46 104,40"
+           fill="#1B4DB8"/>
+  <!-- 헥사곤 내부 흰색 작은 사각형 -->
+  <rect x="109" y="30" width="10" height="10" rx="1" fill="white"/>
+
+  <!-- CLOUD 텍스트 -->
+  <text x="140" y="74"
+        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        font-size="46" font-weight="900" letter-spacing="2"
+        fill="#2B2F5E">CLOUD</text>
+</svg>

@@ -51,6 +51,27 @@ export const config = {
     homepage: env('RBI_HOMEPAGE', 'about:blank'),
     // RBCloud Browser 접속 비밀번호 (iframe 자동 로그인용, docker-compose RBCLOUD_PASSWORD와 동일)
     password: env('RBCLOUD_PASSWORD', 'userpass'),
+    adminPassword: env('RBCLOUD_ADMIN_PASSWORD', 'adminpass'),
+  },
+
+  // ── 세션 오케스트레이터 (사용자별 전용 격리 컨테이너) ──────────
+  orchestrator: {
+    // 사용자별 컨테이너 동적 생성 활성화 (false면 단일 공유 컨테이너 사용)
+    enabled: bool('ORCHESTRATOR_ENABLED', true),
+    // 세션 컨테이너로 사용할 이미지 (docker compose 빌드 결과명)
+    image: env('RBCLOUD_IMAGE', 'rbi-web-isolation-rbcloud'),
+    // 세션 컨테이너가 붙을 docker 네트워크 (compose 네트워크명)
+    network: env('RBI_NETWORK', 'rbi-web-isolation_rbi-net'),
+    // Chromium managed policy named volume (compose 볼륨명)
+    policyVolume: env('RBI_POLICY_VOLUME', 'rbi-web-isolation_policy_data'),
+    // WebRTC 가 클라이언트에 노출할 호스트 IP (NAT1TO1)
+    natIp: env('RBCLOUD_WEBRTC_NAT1TO1', '127.0.0.1'),
+    // 세션별 WebRTC UDP 포트 풀 시작값
+    baseUdpPort: parseInt(env('RBI_BASE_UDP_PORT', '52001'), 10),
+    // 최대 동시 세션 수 (= UDP 포트 풀 크기)
+    maxSessions: parseInt(env('RBI_MAX_SESSIONS', '50'), 10),
+    // 컨테이너 부팅 대기 최대 시간(ms)
+    bootTimeoutMs: parseInt(env('RBI_BOOT_TIMEOUT_MS', '30000'), 10),
   },
 
   // 감사 로그

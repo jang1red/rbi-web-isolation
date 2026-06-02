@@ -29,11 +29,11 @@ router.post('/navigate', async (req, res) => {
 });
 
 router.get('/current', async (req, res) => {
-  res.json({ url: await currentUrl(), cdp: await isCdpAlive() });
+  res.json({ url: await currentUrl(req.sessionId), cdp: await isCdpAlive(req.sessionId) });
 });
-router.post('/back', async (req, res) => res.json(await goBack()));
-router.post('/forward', async (req, res) => res.json(await goForward()));
-router.post('/reload', async (req, res) => res.json(await reload()));
+router.post('/back', async (req, res) => res.json(await goBack(req.sessionId)));
+router.post('/forward', async (req, res) => res.json(await goForward(req.sessionId)));
+router.post('/reload', async (req, res) => res.json(await reload(req.sessionId)));
 
 // 워크스페이스 부트 정보: 워터마크/클립보드 등 클라이언트 오버레이 설정
 router.get('/workspace', (req, res) => {
@@ -70,7 +70,7 @@ router.post('/clipboard-event', (req, res) => {
 
 // 세션 종료 — 격리 브라우저 흔적 폐기
 router.post('/wipe', async (req, res) => {
-  const r = await wipeSession();
+  const r = await wipeSession(req.sessionId);
   res.json(r);
 });
 

@@ -1,6 +1,7 @@
 // RBI 게이트웨이 진입점.
 //   - 인증/세션/관리 API
 //   - RBCloud Browser(격리 브라우저) 리버스 프록시 (HTTP + WebSocket) : 인증된 사용자만 접근
+//   - 사용자별 전용 컨테이너로 동적 라우팅 (세션 격리)
 //   - 프론트엔드(React 빌드) 정적 서빙
 import express from 'express';
 import helmet from 'helmet';
@@ -16,6 +17,7 @@ import { logger } from './logger.js';
 import { verifyToken, getUserById } from './auth.js';
 import { regenerateManagedPolicy } from './policy.js';
 import { ensureBootstrap } from './seed.js';
+import { getSession, cleanupOrphans, dockerAlive } from './orchestrator.js';
 
 import authRoutes from './routes/auth.routes.js';
 import sessionRoutes from './routes/session.routes.js';
@@ -38,23 +40,48 @@ app.use('/api/session', sessionRoutes);
 app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
-// ── RBCloud Browser 리버스 프록시 (인증 게이트) ─────────────
-// /rbcloud/* → RBCloud Browser 컨테이너. 쿠키의 JWT 가 유효한 경우에만 통과.
-function gateRBCloud(req, res, next) {
-  const token = req.cookies?.[config.cookieName];
+// ── 요청 → 사용자 세션 컨테이너 타겟 결정 ───────────────────
+// JWT 쿠키의 sid 로 해당 사용자 전용 컨테이너를 찾는다.
+function resolveTarget(req) {
+  const token = req.cookies?.[config.cookieName] || cookieFromRaw(req.headers.cookie);
   const payload = token && verifyToken(token);
-  const user = payload && getUserById(payload.sub);
-  if (!user || user.disabled) {
-    return res.status(401).send('격리 세션 인증 필요');
+  if (!payload) return { user: null, target: null };
+  const user = getUserById(payload.sub);
+  if (!user || user.disabled) return { user: null, target: null };
+
+  if (config.orchestrator.enabled) {
+    const sess = getSession(payload.sid);
+    // 사용자 전용 컨테이너 (없으면 아직 미생성 → null)
+    return { user, target: sess ? `http://${sess.host}:8080` : null, sid: payload.sid };
   }
+  // 단일 공유 모드(폴백)
+  return { user, target: config.rbcloud.url, sid: payload.sid };
+}
+
+// WS 업그레이드는 req.cookies 가 없으므로 raw 헤더에서 직접 파싱
+function cookieFromRaw(raw) {
+  if (!raw) return null;
+  const m = raw.split(';').map((s) => s.trim()).find((s) => s.startsWith(config.cookieName + '='));
+  return m ? decodeURIComponent(m.split('=').slice(1).join('=')) : null;
+}
+
+// ── RBCloud Browser 리버스 프록시 (인증 게이트 + 동적 라우팅) ─
+function gateRBCloud(req, res, next) {
+  const { user, target } = resolveTarget(req);
+  if (!user) return res.status(401).send('격리 세션 인증 필요');
+  if (!target) {
+    return res.status(503).send('격리 브라우저 준비 중입니다. 잠시 후 새로고침 해주세요.');
+  }
+  req._rbiTarget = target;
   next();
 }
 
 const rbcloudProxy = createProxyMiddleware({
-  target: config.rbcloud.url,
   changeOrigin: true,
   ws: true,
   pathRewrite: { '^/rbcloud': '' },
+  // 사용자별 전용 컨테이너로 동적 라우팅
+  router: (req) => req._rbiTarget || resolveTarget(req).target || config.rbcloud.url,
   logger,
 });
 
@@ -77,13 +104,28 @@ if (fs.existsSync(frontendDir)) {
 ensureBootstrap();
 regenerateManagedPolicy();
 
+// 오케스트레이터: Docker 연결 확인 + 고아 컨테이너 정리
+if (config.orchestrator.enabled) {
+  dockerAlive().then((alive) => {
+    if (alive) {
+      logger.info('오케스트레이터 활성화 — 사용자별 전용 격리 컨테이너 모드');
+      cleanupOrphans();
+    } else {
+      logger.error('Docker 데몬에 연결할 수 없습니다. docker.sock 마운트를 확인하세요. (단일 공유 모드로 폴백되지 않음)');
+    }
+  });
+}
+
 const server = app.listen(config.port, config.host, () => {
   logger.info(`RBI gateway listening on http://${config.host}:${config.port}`);
 });
 
-// WebSocket 업그레이드(RBCloud Browser WebRTC 시그널링) 프록시
+// WebSocket 업그레이드(RBCloud Browser WebRTC 시그널링) 프록시 — 사용자별 컨테이너로 라우팅
 server.on('upgrade', (req, socket, head) => {
   if (req.url.startsWith('/rbcloud')) {
+    const { user, target } = resolveTarget(req);
+    if (!user || !target) { socket.destroy(); return; }
+    req._rbiTarget = target;
     rbcloudProxy.upgrade(req, socket, head);
   }
 });

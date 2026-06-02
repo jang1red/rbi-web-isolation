@@ -63,8 +63,8 @@ export default function Login({ onLogin }) {
                  onChange={(e) => setMfaToken(e.target.value)} />
         )}
         {err && <div className="error">{err}</div>}
-        <button disabled={busy || !username || !password}>{busy ? '확인 중…' : '로그인'}</button>
-        <div className="muted small">Zero-Trust · 모든 접속은 검증·기록됩니다</div>
+        <button disabled={busy || !username || !password}>{busy ? '전용 격리 브라우저 준비 중…' : '로그인'}</button>
+        <div className="muted small">Zero-Trust · 사용자별 독립 컨테이너 · 모든 접속 기록</div>
       </form>
     </div>
   );
