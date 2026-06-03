@@ -30,7 +30,8 @@ function allocPort() {
 function freePort(p) { usedPorts.delete(p); }
 
 // ── 세션 컨테이너 생성 ────────────────────────────────────────
-export async function createSession(sessionId, { username } = {}) {
+export async function createSession(sessionId, opts = {}) {
+  const { username } = opts;
   if (sessions.has(sessionId)) return sessions.get(sessionId);
 
   const udpPort = allocPort();
@@ -76,8 +77,16 @@ export async function createSession(sessionId, { username } = {}) {
     });
     await container.start();
   } catch (err) {
+    // 실패한 컨테이너(좀비) 정리 — 포트 점유 방지
+    try { await docker.getContainer(name).remove({ force: true }); } catch { /* 이미 없음 */ }
+    const msg = String(err.message || '');
+    // 포트 충돌이면 그 포트는 usedPorts에 유지(다음 포트 사용)하고 다음 포트로 재시도
+    if (/already (allocated|in use)|only one usage|port is already|bind/i.test(msg) && (opts._retry || 0) < 20) {
+      logger.warn({ udpPort, sessionId, retry: opts._retry || 0 }, '포트 충돌 — 다음 포트로 재시도');
+      return createSession(sessionId, { username, _retry: (opts._retry || 0) + 1 });
+    }
     freePort(udpPort);
-    logger.error({ err: err.message, sessionId }, '세션 컨테이너 생성 실패');
+    logger.error({ err: msg, sessionId }, '세션 컨테이너 생성 실패');
     throw err;
   }
 
