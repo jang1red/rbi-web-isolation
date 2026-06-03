@@ -22,10 +22,18 @@ const logAdmin = (req, action, detail) =>
 router.get('/users', (req, res) => res.json(listUsers().map(u => ({ ...u, conditions: safeParse(u.conditions) }))));
 router.post('/users', (req, res) => {
   const { username, password, role, conditions } = req.body || {};
-  if (!username || !password) return res.status(400).json({ error: 'username/password 필요' });
-  const u = createUser({ username, password, role, conditions });
-  logAdmin(req, 'create-user', { username, role });
-  res.json({ id: u.id, username: u.username, role: u.role });
+  if (!username || !password) return res.status(400).json({ error: '아이디와 비밀번호를 입력하세요.' });
+  if (String(password).length < 4) return res.status(400).json({ error: '비밀번호는 4자 이상이어야 합니다.' });
+  try {
+    const u = createUser({ username, password, role, conditions });
+    logAdmin(req, 'create-user', { username, role });
+    res.json({ id: u.id, username: u.username, role: u.role });
+  } catch (err) {
+    if (String(err.message).includes('UNIQUE')) {
+      return res.status(409).json({ error: `이미 존재하는 아이디입니다: ${username}` });
+    }
+    res.status(500).json({ error: '사용자 생성 실패: ' + err.message });
+  }
 });
 router.patch('/users/:id', (req, res) => {
   const { disabled, conditions, password } = req.body || {};
