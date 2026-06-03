@@ -3,52 +3,65 @@
   document.title = 'RBCloud Browser';
 
   var params = new URLSearchParams(window.location.search);
-  var pwd = params.get('pwd') || '';
+  /* noauth 모드라 실제 비번 검증은 안 하지만, 폼이 빈 비번을 막으므로 더미값을 채워 버튼을 활성화 */
+  var pwd = params.get('pwd') || 'rbcloud';
   var usr = params.get('usr') || 'RBCloud';
-  // noauth 모드: 비밀번호 없이도 표시이름만 입력하고 연결. (pwd 없어도 진행)
 
-  /* React/Vue 가 무시하지 않도록 native value setter 로 입력 */
+  /* Vue3 / React 의 v-model 이 무시하지 않도록 native setter + 다중 이벤트 */
   function setVal(el, val) {
+    var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype
+                                          : window.HTMLInputElement.prototype;
     try {
-      var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-      setter.call(el, val);
+      Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, val);
     } catch (e) { el.value = val; }
-    el.dispatchEvent(new Event('input',  { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    el.dispatchEvent(new Event('keyup',  { bubbles: true }));
+    ['input', 'change', 'blur', 'keydown', 'keyup'].forEach(function (ev) {
+      el.dispatchEvent(new Event(ev, { bubbles: true }));
+    });
   }
 
-  var tries = 0, MAX = 80; /* 최대 ~24초 */
+  function pressEnter(el) {
+    ['keydown', 'keypress', 'keyup'].forEach(function (t) {
+      el.dispatchEvent(new KeyboardEvent(t, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+    });
+  }
+
+  var tries = 0, MAX = 120; /* 최대 ~30초 */
   var timer = setInterval(function () {
     tries++;
     if (tries > MAX) { clearInterval(timer); return; }
 
     var inputs = Array.from(document.querySelectorAll('input'));
-    if (!inputs.length) return;
+    if (!inputs.length) return; /* 폼 아직 미로딩 */
 
-    /* 비밀번호 input */
     var passInput = inputs.find(function (el) {
       return el.type === 'password' || /pass|비밀번호/i.test(el.placeholder || '');
     });
-    /* 표시 이름(username) input — 비밀번호가 아닌 첫 text input */
     var userInput = inputs.find(function (el) {
       return el !== passInput &&
         (el.type === 'text' || el.type === '' || /이름|name|user|표시/i.test(el.placeholder || ''));
     });
 
-    /* 표시 이름 + 비밀번호 입력 (noauth 모드는 비번 불필요 — 있는 필드만 채움) */
+    /* 표시이름 + 비번(더미) 모두 채워서 버튼 활성화 보장 */
     if (userInput) setVal(userInput, usr);
-    if (passInput && pwd) setVal(passInput, pwd);
+    if (passInput) setVal(passInput, pwd);
 
-    /* '연결' 버튼 — disabled 풀릴 때까지 대기 */
-    var btns = Array.from(document.querySelectorAll('button, input[type=submit]'));
-    var btn = btns.find(function (b) {
-      return /연결|connect|join|enter|login|로그인/i.test((b.textContent || '') + (b.value || ''));
-    });
+    /* 잠깐 기다렸다가 연결 시도 (Vue reactivity 반영 시간) */
+    setTimeout(function () {
+      var btns = Array.from(document.querySelectorAll('button, input[type=submit]'));
+      var btn = btns.find(function (b) {
+        return /연결|connect|join|enter|login|로그인/i.test((b.textContent || '') + (b.value || ''));
+      });
 
-    if (btn && !btn.disabled) {
-      setTimeout(function () { btn.click(); }, 250);
-      clearInterval(timer);
-    }
+      if (btn && !btn.disabled) {
+        btn.click();
+        clearInterval(timer);
+      } else {
+        /* 버튼이 여전히 막혀있으면: form submit + Enter 키로 재시도 */
+        var form = (passInput || userInput || {}).form;
+        if (form) { try { form.requestSubmit ? form.requestSubmit() : form.submit(); } catch (e) {} }
+        if (passInput) pressEnter(passInput);
+        else if (userInput) pressEnter(userInput);
+      }
+    }, 150);
   }, 250);
 })();
