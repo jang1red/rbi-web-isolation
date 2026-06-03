@@ -3,9 +3,9 @@
   document.title = 'RBCloud Browser';
 
   var params = new URLSearchParams(window.location.search);
-  var pwd = params.get('pwd');
+  var pwd = params.get('pwd') || '';
   var usr = params.get('usr') || 'RBCloud';
-  if (!pwd) return;
+  // noauth 모드: 비밀번호 없이도 표시이름만 입력하고 연결. (pwd 없어도 진행)
 
   /* React/Vue 가 무시하지 않도록 native value setter 로 입력 */
   function setVal(el, val) {
@@ -36,11 +36,9 @@
         (el.type === 'text' || el.type === '' || /이름|name|user|표시/i.test(el.placeholder || ''));
     });
 
-    if (!passInput) return; /* 폼 아직 미로딩 */
-
-    /* 표시 이름 + 비밀번호 입력 (neko v3 는 둘 다 필요) */
+    /* 표시 이름 + 비밀번호 입력 (noauth 모드는 비번 불필요 — 있는 필드만 채움) */
     if (userInput) setVal(userInput, usr);
-    setVal(passInput, pwd);
+    if (passInput && pwd) setVal(passInput, pwd);
 
     /* '연결' 버튼 — disabled 풀릴 때까지 대기 */
     var btns = Array.from(document.querySelectorAll('button, input[type=submit]'));

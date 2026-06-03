@@ -16,10 +16,9 @@ services:
     restart: unless-stopped
     shm_size: "2gb"
     environment:
-      # neko 자체 로그인 화면 제거 (게이트웨이 인증으로 보호)
+      # neko 자체 로그인 화면 완전 제거 (게이트웨이 인증으로 보호). NEKO_PASSWORD 제거 필수.
       NEKO_MEMBER_PROVIDER: noauth
-      NEKO_PASSWORD: ${RBCLOUD_PASSWORD:-userpass}
-      NEKO_ADMIN_PASSWORD: ${RBCLOUD_ADMIN_PASSWORD:-adminpass}
+      NEKO_MEMBER_NOAUTH: "true"
       NEKO_WEBRTC_NAT1TO1: ${RBCLOUD_WEBRTC_NAT1TO1:-127.0.0.1}
       NEKO_WEBRTC_UDPMUX: ${RBCLOUD_WEBRTC_UDPMUX:-52000}
       NEKO_WEBRTC_TCPMUX: 0

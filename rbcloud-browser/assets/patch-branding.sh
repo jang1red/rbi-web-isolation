@@ -24,5 +24,12 @@ for f in "$WEB"/js/*.js; do
   sed -i 's/n\.eko/RBCloud Browser/g' "$f" 2>/dev/null || true
 done
 
+# ── neko member provider 를 noauth 로 강제 (로그인 화면 완전 제거) ──
+# neko.yaml 에 provider:"multiuser" 가 하드코딩되어 환경변수를 무시하므로 파일을 직접 수정.
+if [ -f /etc/neko/neko.yaml ]; then
+  sed -i 's/provider: *"multiuser"/provider: "noauth"/g' /etc/neko/neko.yaml
+  echo "[RBCloud] neko.yaml -> noauth provider 적용"
+fi
+
 # (CSS/JS 파일은 Dockerfile에서 직접 COPY됨)
 echo "[RBCloud] 브랜딩 패치 완료"
