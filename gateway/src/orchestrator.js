@@ -53,14 +53,18 @@ export async function createSession(sessionId, { username } = {}) {
         'NEKO_SESSION_API_TOKEN=',
         `NEKO_WEBRTC_NAT1TO1=${o.natIp}`,
         `NEKO_WEBRTC_UDPMUX=${udpPort}`,
-        'NEKO_WEBRTC_TCPMUX=0',
+        // ★ TCP mux 도 같은 포트로 활성화 — UDP가 막히는 환경(Windows Docker 등)에서 WebRTC over TCP fallback
+        `NEKO_WEBRTC_TCPMUX=${udpPort}`,
         'NEKO_CHROMIUM_FLAGS=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --no-first-run --disable-default-apps --disable-session-crashed-bubble --use-fake-ui-for-media-stream',
       ],
-      ExposedPorts: { '8080/tcp': {}, '9222/tcp': {}, [`${udpPort}/udp`]: {} },
+      ExposedPorts: { '8080/tcp': {}, '9222/tcp': {}, [`${udpPort}/udp`]: {}, [`${udpPort}/tcp`]: {} },
       HostConfig: {
         NetworkMode: o.network,
-        // WebRTC UDP 포트만 호스트에 매핑(같은 번호) — 미디어는 클라이언트 직접 연결
-        PortBindings: { [`${udpPort}/udp`]: [{ HostPort: String(udpPort) }] },
+        // WebRTC 포트를 호스트에 매핑(같은 번호) — UDP + TCP 둘 다. 미디어는 클라이언트 직접 연결
+        PortBindings: {
+          [`${udpPort}/udp`]: [{ HostPort: String(udpPort) }],
+          [`${udpPort}/tcp`]: [{ HostPort: String(udpPort) }],
+        },
         ShmSize: 2 * 1024 * 1024 * 1024, // Chromium 렌더링 공유메모리 2GB
         CapAdd: ['SYS_ADMIN'],
         Binds: [`${o.policyVolume}:/etc/chromium/policies/managed:ro`],
