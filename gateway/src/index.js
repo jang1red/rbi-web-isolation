@@ -140,6 +140,13 @@ server.on('upgrade', (req, socket, head) => {
   if (req.url.startsWith('/rbcloud')) {
     const { user, target } = resolveTarget(req);
     if (!user || !target) { socket.destroy(); return; }
+    // ★ neko 표시명을 로그인한 실제 아이디로 강제 교체 (브라우저에 저장된 이전 이름 무시)
+    const uname = encodeURIComponent(user.username);
+    if (/[?&]username=/.test(req.url)) {
+      req.url = req.url.replace(/([?&])username=[^&]*/, `$1username=${uname}`);
+    } else {
+      req.url += (req.url.includes('?') ? '&' : '?') + 'username=' + uname;
+    }
     req._rbiTarget = target;
     rbcloudProxy.upgrade(req, socket, head);
   }
