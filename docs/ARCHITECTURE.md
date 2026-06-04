@@ -1,6 +1,30 @@
 # 시스템 아키텍처
 
-## 전체 구성도
+> 아래 다이어그램은 `docs/images/`에 PNG로 제공됩니다. (Spector RBI 소개서 스타일의 시각 자료)
+
+## 📊 다이어그램 모음
+
+### 1) 전체 시스템 구성도
+![전체 시스템 구성도](images/architecture-overview.png)
+
+### 2) 모듈·엔진 아키텍처
+![모듈 아키텍처](images/module-architecture.png)
+
+### 3) 사용자별 격리 컨테이너 — 세션 라이프사이클
+![세션 라이프사이클](images/session-lifecycle.png)
+
+### 4) 정책 이중 방어 (Defense in Depth)
+![정책 이중 방어](images/policy-defense.png)
+
+### 5) 활용 시나리오 — 사용자 접속 흐름
+![활용 시나리오](images/usage-scenario.png)
+
+### 6) 망분리 환경 네트워크 배치
+![망분리 네트워크 배치](images/network-deployment.png)
+
+---
+
+## 전체 구성도 (텍스트)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
