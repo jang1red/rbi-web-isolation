@@ -22,6 +22,17 @@
 ### 6) 망분리 환경 네트워크 배치
 ![망분리 네트워크 배치](images/network-deployment.png)
 
+## 📋 단계별 구성도 (기획 · 설계 · 개발)
+
+### 기획 — 기능 요구사항 구성 (6개 기능 그룹)
+![기획 단계 구성](images/stage1-planning.png)
+
+### 설계 — 데이터(DB)·API·인증 시퀀스 설계
+![설계 단계 구성](images/stage2-design.png)
+
+### 개발 — 코드·컴포넌트 구조 + 기술 스택
+![개발 단계 구성](images/stage3-development.png)
+
 ---
 
 ## 전체 구성도 (텍스트)
