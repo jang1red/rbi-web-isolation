@@ -46,19 +46,8 @@ if grep -q "CHANGE_ME" .env; then
 fi
 echo "▶ .env 설정 완료 (RBCLOUD_WEBRTC_NAT1TO1=$SERVER_IP)"
 
-# ── 4. 프론트엔드 빌드 ─────────────────────────────────────
-if [ ! -f frontend/dist/index.html ]; then
-  if ! command -v node >/dev/null 2>&1; then
-    echo "▶ Node.js 설치 중..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-  fi
-  echo "▶ 프론트엔드 빌드 중..."
-  ( cd frontend && npm install && npm run build )
-fi
-
-# ── 5. 빌드 + 기동 ─────────────────────────────────────────
-echo "▶ 컨테이너 빌드 및 기동..."
+# ── 4. 빌드 + 기동 (프론트엔드는 Docker 빌드에 포함됨 — Node 불필요) ──
+echo "▶ 컨테이너 빌드 및 기동... (프론트엔드 빌드 포함, 수 분 소요)"
 docker compose up -d --build
 
 # ── 6. 방화벽 (ufw 있을 때) ────────────────────────────────

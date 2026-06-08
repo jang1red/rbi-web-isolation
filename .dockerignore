@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+**/.git
+gateway/data
+.env
+*.log
+docs/images/*.png

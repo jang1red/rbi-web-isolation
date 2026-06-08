@@ -42,7 +42,9 @@ services:
 
   # ── 2. 게이트웨이 (Node.js: 인증·정책·감사·오케스트레이터) ──
   gateway:
-    build: ./gateway
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
     restart: unless-stopped
     depends_on:
       - rbcloud
@@ -65,7 +67,7 @@ services:
     volumes:
       - gateway_data:/app/data
       - policy_data:/app/data/policies
-      - ./frontend/dist:/app/frontend/dist:ro
+      # 프론트엔드는 이미지에 빌드 포함됨 (별도 마운트 불필요)
       # ★ Docker 데몬 소켓 — 게이트웨이가 사용자별 컨테이너를 생성/삭제
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
