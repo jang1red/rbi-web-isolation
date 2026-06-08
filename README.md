@@ -43,6 +43,20 @@ docker compose up --build
 # 기본 관리자 계정: admin / changeme  (최초 로그인 후 변경 필수)
 ```
 
+## 서버 배포 (Linux 서버 + 원격 접속)
+
+서버를 별도 Linux 머신에 두고 다른 PC에서 접속하려면 **자동 배포 스크립트**를 사용하세요:
+
+```bash
+git clone https://github.com/jang1red/rbi-web-isolation
+cd rbi-web-isolation
+chmod +x deploy.sh
+./deploy.sh              # 내부망: 서버 IP 자동 감지
+./deploy.sh <공인IP>    # 외부망: 접속 IP 지정
+```
+
+자세한 내용은 **[DEPLOY.md](DEPLOY.md)** 참고. (Docker 설치 · 네트워크별 설정 · 포트 개방 · 문제 해결)
+
 ## 로컬 개발 (Docker 없이 일부)
 
 ```bash
