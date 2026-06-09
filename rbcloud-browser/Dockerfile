@@ -17,7 +17,9 @@ COPY assets/patch-branding.sh     /tmp/patch-branding.sh
 RUN python3 /tmp/gen-favicons.py
 
 # 브랜딩 패치 실행 (index.html 타이틀·링크 주입, manifest·JS 텍스트 치환)
-RUN chmod +x /tmp/patch-branding.sh && sh /tmp/patch-branding.sh
+# Windows(CRLF)에서 clone 되어도 깨지지 않도록 스크립트의 캐리지리턴(\r) 제거 후 실행
+RUN sed -i 's/\r$//' /tmp/patch-branding.sh /tmp/gen-favicons.py 2>/dev/null; \
+    chmod +x /tmp/patch-branding.sh && sh /tmp/patch-branding.sh
 
 # ── 정책 디렉터리 ────────────────────────────────────────────
 RUN mkdir -p /etc/chromium/policies/managed
