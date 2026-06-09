@@ -63,7 +63,9 @@ services:
       RBI_NETWORK: rbi-web-isolation_rbi-net
       RBI_POLICY_VOLUME: rbi-web-isolation_policy_data
       RBI_BASE_UDP_PORT: "52001"
-      RBI_MAX_SESSIONS: "50"
+      RBI_MAX_SESSIONS: ${RBI_MAX_SESSIONS:-50}
+      # 세션 화면 해상도@프레임 — 저사양 서버는 낮춰서 인코딩 CPU 부하 절감 (기본 720p@25)
+      RBI_DESKTOP_SCREEN: ${RBI_DESKTOP_SCREEN:-1280x720@25}
     volumes:
       - gateway_data:/app/data
       - policy_data:/app/data/policies

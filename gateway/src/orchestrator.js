@@ -57,6 +57,9 @@ export async function createSession(sessionId, opts = {}) {
         // ★ TCP mux 도 같은 포트로 활성화 — UDP가 막히는 환경(Windows Docker 등)에서 WebRTC over TCP fallback
         `NEKO_WEBRTC_TCPMUX=${udpPort}`,
         'NEKO_CHROMIUM_FLAGS=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --no-first-run --disable-default-apps --disable-session-crashed-bubble --use-fake-ui-for-media-stream',
+        // ★ 화면 해상도·프레임레이트 — 영상 인코딩 CPU 부하 조절 (저사양 서버 대응).
+        //   기본 1280x720@25 (1080p@30 대비 인코딩 부하 ~절반). RBI_DESKTOP_SCREEN 로 조절 가능.
+        `NEKO_DESKTOP_SCREEN=${process.env.RBI_DESKTOP_SCREEN || '1280x720@25'}`,
       ],
       ExposedPorts: { '8080/tcp': {}, '9222/tcp': {}, [`${udpPort}/udp`]: {}, [`${udpPort}/tcp`]: {} },
       HostConfig: {
